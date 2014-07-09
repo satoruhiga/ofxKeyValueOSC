@@ -121,9 +121,9 @@ public:
 	void setEnable(bool v = true)
 	{
 		if (v)
-			ofAddListener(ofEvents().update, this, &ofxKeyValueOSC::onUpdate);
+			ofAddListener(ofEvents().update, this, &ofxKeyValueOSC::onUpdate, OF_EVENT_ORDER_BEFORE_APP);
 		else
-			ofRemoveListener(ofEvents().update, this, &ofxKeyValueOSC::onUpdate);
+			ofRemoveListener(ofEvents().update, this, &ofxKeyValueOSC::onUpdate, OF_EVENT_ORDER_BEFORE_APP);
 	}
 	
 	void setDisable()
