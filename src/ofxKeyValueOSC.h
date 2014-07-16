@@ -185,6 +185,17 @@ public:
 		return true;
 	}
 	
+	bool get(const string& key, ofVec2f &value)
+	{
+		ofxOscMessage m;
+		if (!get(key, m)) return false;
+		
+		value.x = m.getArgAsFloat(0);
+		value.y = m.getArgAsFloat(1);
+		
+		return true;
+	}
+	
 	bool get(const string& key, ofVec3f &value)
 	{
 		ofxOscMessage m;
