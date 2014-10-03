@@ -68,10 +68,16 @@ void testApp::update()
 
 class ofxKeyValueOSC
 {
-	typedef std::tr1::shared_ptr<ofxOscMessage> ofxOscMessageRef;
-	typedef std::deque<ofxOscMessageRef> MessageList;
+	typedef ofPtr<ofxOscMessage> ofxOscMessageRef;
+	
+	struct MessageList {
+		typedef vector<ofxOscMessageRef>::iterator iterator;
+		
+		vector<ofxOscMessageRef> msgs;
+		iterator itor;
+	};
+	
 	std::tr1::unordered_map<string, MessageList> keyValue;
-	std::tr1::unordered_map<string, MessageList::iterator> keyValueIter;
 
 	ofxOscReceiver receiver;
 	
@@ -80,42 +86,56 @@ public:
 	void setup(int port)
 	{
 		receiver.setup(port);
-		
 		setEnable();
 	}
 	
 	void clear()
 	{
 		keyValue.clear();
-		keyValueIter.clear();
 	}
 
-	bool get(const string& key, ofxOscMessage &m)
+	bool get(const string& key, ofxOscMessage &m, bool get_latest = false)
 	{
-		MessageList &l = keyValue[key];
-		if (l.empty()) return false;
-		
-		MessageList::iterator &it = keyValueIter[key];
-		
-		if (it == l.end())
-		{
-			it = l.begin();
-			return false;
-		}
-		
-		ofxOscMessageRef ref = *it;
-		if (!ref) return false;
+		MessageList &msg_list = keyValue[key];
+		if (msg_list.msgs.empty()) return false;
 
-		m = *ref;
-		it++;
-		
-		return true;
+		if (get_latest)
+		{
+			const ofxOscMessageRef& ref = msg_list.msgs.back();
+			if (!ref) return false;
+
+			m = *ref;
+			return true;
+		}
+		else
+		{
+			MessageList::iterator &it = msg_list.itor;
+			
+			if (it == msg_list.msgs.end())
+			{
+				it = msg_list.msgs.begin();
+				return false;
+			}
+			
+			const ofxOscMessageRef& ref = *it;
+			if (!ref) return false;
+			
+			m = *ref;
+			it++;
+			
+			return true;
+		}
 	}
 	
+	template <typename T>
+	bool getLatest(const string& key, T& value)
+	{
+		return get(key, value, true);
+	}
+
 	void remove(const string& key)
 	{
 		keyValue.erase(key);
-		keyValueIter.erase(key);
 	}
 	
 	void setEnable(bool v = true)
@@ -135,60 +155,60 @@ public:
 	// other type shortcuts
 	//
 	
-	bool get(const string& key, float &value)
+	bool get(const string& key, float &value, bool get_latest = false)
 	{
 		ofxOscMessage m;
-		if (!get(key, m)) return false;
+		if (!get(key, m, get_latest)) return false;
 		
 		value = m.getArgAsFloat(0);
 		
 		return true;
 	}
 	
-	bool get(const string& key, double &value)
+	bool get(const string& key, double &value, bool get_latest = false)
 	{
 		ofxOscMessage m;
-		if (!get(key, m)) return false;
+		if (!get(key, m, get_latest)) return false;
 		
 		value = m.getArgAsFloat(0);
 		
 		return true;
 	}
 	
-	bool get(const string& key, int &value)
+	bool get(const string& key, int &value, bool get_latest = false)
 	{
 		ofxOscMessage m;
-		if (!get(key, m)) return false;
+		if (!get(key, m, get_latest)) return false;
 		
 		value = m.getArgAsInt32(0);
 		
 		return true;
 	}
 	
-	bool get(const string& key, bool &value)
+	bool get(const string& key, bool &value, bool get_latest = false)
 	{
 		ofxOscMessage m;
-		if (!get(key, m)) return false;
+		if (!get(key, m, get_latest)) return false;
 		
 		value = m.getArgAsInt32(0);
 		
 		return true;
 	}
 	
-	bool get(const string& key, string &value)
+	bool get(const string& key, string &value, bool get_latest = false)
 	{
 		ofxOscMessage m;
-		if (!get(key, m)) return false;
+		if (!get(key, m, get_latest)) return false;
 		
 		value = m.getArgAsString(0);
 		
 		return true;
 	}
 	
-	bool get(const string& key, ofVec2f &value)
+	bool get(const string& key, ofVec2f &value, bool get_latest = false)
 	{
 		ofxOscMessage m;
-		if (!get(key, m)) return false;
+		if (!get(key, m, get_latest)) return false;
 		
 		value.x = m.getArgAsFloat(0);
 		value.y = m.getArgAsFloat(1);
@@ -196,10 +216,10 @@ public:
 		return true;
 	}
 	
-	bool get(const string& key, ofVec3f &value)
+	bool get(const string& key, ofVec3f &value, bool get_latest = false)
 	{
 		ofxOscMessage m;
-		if (!get(key, m)) return false;
+		if (!get(key, m, get_latest)) return false;
 		
 		value.x = m.getArgAsFloat(0);
 		value.y = m.getArgAsFloat(1);
@@ -208,10 +228,10 @@ public:
 		return true;
 	}
 	
-	bool get(const string& key, ofColor &value)
+	bool get(const string& key, ofColor &value, bool get_latest = false)
 	{
 		ofxOscMessage m;
-		if (!get(key, m)) return false;
+		if (!get(key, m, get_latest)) return false;
 		
 		value.r = m.getArgAsInt32(0);
 		value.g = m.getArgAsInt32(1);
@@ -225,10 +245,10 @@ public:
 		return true;
 	}
 	
-	bool get(const string& key, ofFloatColor &value)
+	bool get(const string& key, ofFloatColor &value, bool get_latest = false)
 	{
 		ofxOscMessage m;
-		if (!get(key, m)) return false;
+		if (!get(key, m, get_latest)) return false;
 		
 		value.r = m.getArgAsFloat(0);
 		value.g = m.getArgAsFloat(1);
@@ -246,28 +266,43 @@ protected:
 	
 	void set(const string& key, ofxOscMessage &m)
 	{
-		ofxOscMessageRef ref = ofxOscMessageRef(new ofxOscMessage(m));
-		keyValue[key].push_back(ref);
+		ofxOscMessageRef ref(new ofxOscMessage(m));
+		keyValue[key].msgs.push_back(ref);
 	}
 
 	void onUpdate(ofEventArgs&)
 	{
+		{
+			std::tr1::unordered_map<string, MessageList>::iterator it = keyValue.begin();
+			while (it != keyValue.end())
+			{
+				if (keyValue[(*it).first].itor != (*it).second.msgs.begin())
+				{
+					ofLogWarning("ofxKeyValueOSC") << "iterator error detected: " << (*it).first;
+				}
+				
+				it++;
+			}
+		}
+		
 		clear();
 		
+		ofxOscMessage m;
 		while (receiver.hasWaitingMessages())
 		{
-			ofxOscMessage m;
 			receiver.getNextMessage(&m);
 			
-			string addr = m.getAddress();
+			const string& addr = m.getAddress();
 			set(addr, m);
 		}
 		
-		std::tr1::unordered_map<string, MessageList>::iterator it = keyValue.begin();
-		while (it != keyValue.end())
 		{
-			keyValueIter[(*it).first]= (*it).second.begin();
-			it++;
+			std::tr1::unordered_map<string, MessageList>::iterator it = keyValue.begin();
+			while (it != keyValue.end())
+			{
+				keyValue[(*it).first].itor = (*it).second.msgs.begin();
+				it++;
+			}
 		}
 	}
 
