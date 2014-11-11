@@ -3,6 +3,10 @@
 #include "ofxKeyValueOSC.h"
 
 ofxKeyValueOSC keyValue;
+ofParameter<float> param1;
+ofParameter<bool> param2;
+ofParameter<ofVec2f> param3;
+ofParameterGroup params;
 
 class MyObject
 {
@@ -32,6 +36,11 @@ void testApp::setup()
 	ofBackground(0);
 	
 	keyValue.setup(5500);
+
+	params.setName("params");
+  params.add( param1.set("param1float", 0.5f) );
+  params.add( param2.set("param2bool", false) );
+  params.add( param3.set("param3vec2", ofVec2f(0.1,0.2)) );
 }
 
 //--------------------------------------------------------------
@@ -60,7 +69,15 @@ void testApp::update()
 
 	keyValue.get("/myObject1.pos", myObject1.pos);
 	keyValue.get("/myObject1.color", myObject1.color);
-	
+
+
+  for (int i = 0; i < params.size(); i++)
+  {
+    string name = "/"+params.getName(i);
+    if ( keyValue.get( name, params.get(i) ) )
+      cout << "update param " << name << " = " << params.get(i) << endl;
+  }
+
 	
 	// FIFO queue access
 	

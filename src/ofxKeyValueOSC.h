@@ -261,7 +261,88 @@ public:
 		
 		return true;
 	}
-	
+
+  bool get(const string& key, ofAbstractParameter& param, bool get_latest = false)
+	{
+
+    ofxOscMessage m;
+    if (!get(key, m, get_latest)) return false;
+
+    ofAbstractParameter* p = &param;
+
+    if ( p->type() == typeid(ofParameter<int>).name() ) 
+    {
+      p->cast<int>() = m.getArgAsInt32(0);
+      return true;
+    }
+
+    else if ( p->type() == typeid(ofParameter<bool>).name() ) 
+    {
+      p->cast<bool>() = m.getArgAsInt32(0);
+      return true;
+    }
+
+    else if ( p->type() == typeid(ofParameter<float>).name() ) 
+    {
+      p->cast<float>() = m.getArgAsFloat(0);
+      return true;
+    }
+
+    else if ( p->type() == typeid(ofParameter<double>).name() ) 
+    {
+      p->cast<double>() = m.getArgAsFloat(0);
+      return true;
+    }
+
+    else if ( p->type() == typeid(ofParameter<string>).name() )
+    {
+      p->cast<string>() = m.getArgAsString(0);
+      return true;
+    }
+
+    else if ( p->type() == typeid(ofParameter<ofVec2f>).name() )
+    {
+      p->cast<ofVec2f>().set( ofVec2f(m.getArgAsFloat(0), m.getArgAsFloat(1)) );
+      return true;
+    }
+
+    else if ( p->type() == typeid(ofParameter<ofVec3f>).name() )
+    {
+      p->cast<ofVec3f>().set( ofVec3f(m.getArgAsFloat(0), m.getArgAsFloat(1), m.getArgAsFloat(2)) );
+      return true;
+    }
+
+    else if ( p->type() == typeid(ofParameter<ofColor>).name() )
+    {
+      if (m.getNumArgs() == 3)
+      {
+        p->cast<ofColor>().set( ofColor(m.getArgAsInt32(0), m.getArgAsInt32(1), m.getArgAsInt32(2)) );
+      }
+      else
+      {
+        p->cast<ofColor>().set( ofColor(m.getArgAsInt32(0), m.getArgAsInt32(1), m.getArgAsInt32(2), m.getArgAsInt32(3)) );
+      }
+
+      return true;
+    }
+
+    else if ( p->type() == typeid(ofParameter<ofFloatColor>).name() )
+    {
+      if (m.getNumArgs() == 3)
+      {
+        p->cast<ofFloatColor>().set( ofFloatColor(m.getArgAsFloat(0), m.getArgAsFloat(1), m.getArgAsFloat(2)) );
+      }
+      else
+      {
+        p->cast<ofFloatColor>().set( ofFloatColor(m.getArgAsFloat(0), m.getArgAsFloat(1), m.getArgAsFloat(2), m.getArgAsFloat(3)) );
+      }
+
+      return true;
+    }
+
+    return false;
+	}
+
 protected:
 	
 	void set(const string& key, ofxOscMessage &m)
