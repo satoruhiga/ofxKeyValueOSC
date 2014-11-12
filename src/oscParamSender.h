@@ -3,8 +3,15 @@
 #include "ofMain.h"
 #include "ofxOsc.h"
 
+class oscParamSenderAbstract
+{
+  public:
+  oscParamSenderAbstract(){};
+  virtual ofAbstractParameter& param(){};
+};
+
 template<typename T>
-class oscParamSender
+class oscParamSender : public oscParamSenderAbstract
 {
   public:
 
@@ -25,6 +32,11 @@ class oscParamSender
     {
       _param.set(name, value);
       return init( sender );
+    };
+
+    virtual ofAbstractParameter& param() 
+    {
+      return _param;
     };
 
   private:
