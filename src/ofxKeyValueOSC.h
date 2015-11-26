@@ -4,9 +4,16 @@
 
 #include "ofxOsc.h"
 
+#include <queue>
+
+#ifndef HAS_CPP11
 #include <tr1/unordered_map>
 #include <tr1/memory>
-#include <queue>
+
+namespace std {
+	using std::tr1::unordered_map;
+}
+#endif
 
 /*
 
@@ -77,7 +84,7 @@ class ofxKeyValueOSC
 		iterator itor;
 	};
 	
-	std::tr1::unordered_map<string, MessageList> keyValue;
+	std::unordered_map<string, MessageList> keyValue;
 
 	ofxOscReceiver receiver;
 	
@@ -354,7 +361,7 @@ protected:
 	void onUpdate(ofEventArgs&)
 	{
 		{
-			std::tr1::unordered_map<string, MessageList>::iterator it = keyValue.begin();
+			std::unordered_map<string, MessageList>::iterator it = keyValue.begin();
 			while (it != keyValue.end())
 			{
 				if (keyValue[(*it).first].itor != (*it).second.msgs.begin())
@@ -371,14 +378,14 @@ protected:
 		ofxOscMessage m;
 		while (receiver.hasWaitingMessages())
 		{
-			receiver.getNextMessage(&m);
+			receiver.getNextMessage(m);
 			
 			const string& addr = m.getAddress();
 			set(addr, m);
 		}
 		
 		{
-			std::tr1::unordered_map<string, MessageList>::iterator it = keyValue.begin();
+			std::unordered_map<string, MessageList>::iterator it = keyValue.begin();
 			while (it != keyValue.end())
 			{
 				keyValue[(*it).first].itor = (*it).second.msgs.begin();
